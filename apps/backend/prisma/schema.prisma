@@ -4,17 +4,94 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider     = "prisma-client"
-  output       = "../generated/prisma"
-  moduleFormat = "cjs"
+  provider        = "prisma-client"
+  output          = "../../../packages/shared/prisma"
+  moduleFormat    = "cjs"
+  previewFeatures = ["strictUndefinedChecks"]
 }
 
 datasource db {
   provider = "postgresql"
 }
 
-model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+model SystemAdmins {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  name          String
+  password_hash String
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+  is_active     Boolean  @default(true)
+
+  @@map("system_admins")
+}
+
+model Employees {
+  id                 String    @id @default(uuid())
+  tenant_id          String
+  email              String
+  password_hash      String?
+  google_id          String?
+  name               String
+  avatar_url         String?
+  is_active          Boolean   @default(true)
+  is_manager         Boolean   @default(false)
+  deactivated_at     DateTime?
+  invited_by_id      String?
+  invite_accepted_at DateTime?
+  created_at         DateTime  @default(now())
+  updated_at         DateTime  @updatedAt
+
+  tenant     Tenants    @relation("TenantEmployees", fields: [tenant_id], references: [id])
+  invited_by Employees? @relation("InvitedBy", fields: [invited_by_id], references: [id])
+
+  invited_users   Employees[] @relation("InvitedBy")
+  manager_tenants Tenants[]   @relation("TenantManager")
+
+  @@index([tenant_id, email])
+  @@map("employees")
+}
+
+enum TenantStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+model Tenants {
+  id              String       @id @default(uuid())
+  name            String
+  slug            String       @unique
+  status          TenantStatus @default(ACTIVE)
+  manager_id      String?
+  max_employees   Int?
+  max_decisions   Int?
+  max_storage_mb  Int?
+  storage_used_mb Decimal?     @default(0)
+  deleted_at      DateTime?
+  created_at      DateTime     @default(now())
+  updated_at      DateTime     @updatedAt
+
+  employees   Employees[]   @relation("TenantEmployees")
+  manager     Employees?    @relation("TenantManager", fields: [manager_id], references: [id])
+  inviteLinks InviteLinks[] @relation("TenantInviteLinks")
+
+  @@index([slug])
+  @@map("tenants")
+}
+
+model InviteLinks {
+  id          String    @id @default(uuid())
+  tenant_id   String
+  email       String
+  token       String    @unique
+  expires_at  DateTime
+  accepted_at DateTime?
+  created_by  String
+  created_at  DateTime  @default(now())
+
+  tenant    Tenants @relation("TenantInviteLinks", fields: [tenant_id], references: [id])
+  tenantsId String?
+
+  @@map("invite_links")
 }

@@ -1,0 +1,18 @@
+{
+  "extends": "@decider/typescript-config/base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "dist",
+    "declaration": true,
+    "declarationMap": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "target": "ES2023",
+    "paths": {
+      "@types/*": ["./types/*"],
+      "@prisma/*": ["./prisma/*"]
+    }
+  },
+  "include": ["prisma/**/*.ts", "types/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}
