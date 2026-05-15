@@ -1,7 +1,6 @@
 {
   "extends": "@decider/typescript-config/nextjs.json",
   "compilerOptions": {
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
       "@decider/ui/*": ["../../packages/ui/src/*"]
